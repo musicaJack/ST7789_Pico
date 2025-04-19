@@ -1,0 +1,86 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "构建Pico项目",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/build; cmake .. -G \"MinGW Makefiles\"; mingw32-make",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "清理并重新构建",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/build; Remove-Item -Path * -Recurse -Force; cmake .. -G \"MinGW Makefiles\"; mingw32-make",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "构建并部署到Pico",
+            "dependsOn": ["构建Pico项目"],
+            "type": "shell",
+            "command": "if (Test-Path E:) { Copy-Item ${workspaceFolder}\\build\\pico_spi_lcd.uf2 E:\\ -Force; Write-Host \"已部署到Pico\" } else { Write-Host \"未找到Pico设备，请确保设备处于BOOTSEL模式并连接\" }",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "使用批处理脚本构建",
+            "type": "process",
+            "command": "${workspaceFolder}/build_pico.bat",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "使用批处理脚本部署",
+            "type": "process",
+            "command": "${workspaceFolder}/deploy_to_pico.bat",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+} 

@@ -1,0 +1,15 @@
+{
+    "cmake.configureOnOpen": false,
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.generator": "MinGW Makefiles",
+    "cmake.configureSettings": {
+        "CMAKE_C_COMPILER": "C:/Users/sh_mu/.pico-sdk/toolchain/14_2_Rel1/bin/arm-none-eabi-gcc.exe",
+        "CMAKE_CXX_COMPILER": "C:/Users/sh_mu/.pico-sdk/toolchain/14_2_Rel1/bin/arm-none-eabi-g++.exe"
+    },
+    "cmake.buildTask": true,
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "files.associations": {
+        "*.h": "c",
+        "*.c": "c"
+    }
+} 
