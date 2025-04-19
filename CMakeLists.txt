@@ -13,10 +13,14 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# 禁用picotool下载，避免网络问题
+# 完全禁用picotool和其他工具下载，避免网络问题
 set(PICO_SKIP_TOOLS_PACKAGE_SEARCH 1)
 set(SKIP_TOOL_RISCV_OPENOCD 1)
 set(SKIP_TOOL_PICOTOOL 1)
+set(PICO_SDK_FETCH_FROM_GIT 0)
+set(PICOTOOL_FETCH_FROM_GIT 0)
+set(PICO_SKIP_TOOL_CHECKS 1)
+set(PICO_NO_HARDWARE 0)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
@@ -30,7 +34,7 @@ endif()
 set(sdkVersion 2.1.1)
 set(toolchainVersion 14_2_Rel1)
 set(picotoolVersion 2.1.1)
-set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+set(picoVscode ${PICO_SDK_PATH}/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
