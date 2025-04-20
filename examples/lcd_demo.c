@@ -1,6 +1,6 @@
 /**
  * @file lcd_demo.c
- * @brief ST7789 LCD驱动演示程序
+ * @brief ST7789 LCD Driver Demo Program
  */
 
 #include <stdio.h>
@@ -8,67 +8,67 @@
 #include "st7789.h"
 #include "st7789_gfx.h"
 
-// 引脚定义
+// Pin definitions
 #define PIN_DIN   19  // SPI MOSI
 #define PIN_SCK   18  // SPI SCK
-#define PIN_CS    17  // SPI CS - 需要手动控制
+#define PIN_CS    17  // SPI CS - manually controlled
 #define PIN_DC    20  // Data/Command
 #define PIN_RESET 15  // Reset
 #define PIN_BL    10  // Backlight
 
-// 屏幕参数
+// Screen parameters
 #define SCREEN_WIDTH  240
 #define SCREEN_HEIGHT 320
 
-// 演示静态图形
+// Demo for static graphics
 static void demo_static_graphics(void) {
-    printf("绘制静态图形演示...\n");
+    printf("Running static graphics demo...\n");
     
-    // 清屏为黑色
+    // Clear screen to black
     st7789_fill_screen(ST7789_BLACK);
     sleep_ms(500);
     
-    // 绘制一些简单图形
-    printf("绘制矩形...\n");
+    // Draw some simple shapes
+    printf("Drawing rectangles...\n");
     st7789_draw_rect(20, 20, 200, 120, ST7789_WHITE);
     st7789_fill_rect(50, 50, 140, 60, ST7789_RED);
     sleep_ms(1000);
     
-    printf("绘制线条...\n");
+    printf("Drawing lines...\n");
     st7789_draw_line(20, 160, 220, 220, ST7789_GREEN);
     st7789_draw_line(220, 160, 20, 220, ST7789_GREEN);
     sleep_ms(1000);
     
-    printf("绘制圆形...\n");
+    printf("Drawing circles...\n");
     st7789_draw_circle(120, 280, 30, ST7789_BLUE);
     st7789_fill_circle(120, 280, 15, ST7789_YELLOW);
     sleep_ms(1000);
     
-    // 绘制文本
-    printf("绘制文本...\n");
+    // Draw text
+    printf("Drawing text...\n");
     st7789_draw_string(40, 150, "ST7789 LCD Test", ST7789_CYAN, ST7789_BLACK, 2);
     st7789_draw_string(40, 180, "Raspberry Pi Pico", ST7789_MAGENTA, ST7789_BLACK, 2);
     
     sleep_ms(2000);
 }
 
-// 演示动态彩色图案
+// Demo for dynamic color animation
 static void demo_color_animation(void) {
-    printf("绘制动态彩色动画...\n");
+    printf("Running color animation demo...\n");
     
     uint32_t t = 0;
     uint32_t start_time = to_ms_since_boot(get_absolute_time());
     uint32_t frames = 0;
     
-    // 运行动画10秒
+    // Run animation for 10 seconds
     while (to_ms_since_boot(get_absolute_time()) - start_time < 10000) {
         uint8_t r, g, b;
         uint16_t color;
         
-        // 设置绘图区域为整个屏幕
+        // Set drawing window to entire screen
         st7789_set_window(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
         
-        // 绘制动态彩色图案
+        // Draw dynamic color pattern
         for (uint16_t y = 0; y < SCREEN_HEIGHT; y++) {
             for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
                 r = (x + t) & 0x1F;
@@ -85,21 +85,21 @@ static void demo_color_animation(void) {
         frames++;
         
         if (frames % 10 == 0) {
-            printf("已完成%lu帧\n", frames);
+            printf("Completed %lu frames\n", frames);
         }
     }
     
     float fps = (float)frames / 10.0f;
-    printf("动画完成：%lu帧，平均%.1f FPS\n", frames, fps);
+    printf("Animation completed: %lu frames, average %.1f FPS\n", frames, fps);
 }
 
 int main() {
-    // 初始化标准库
+    // Initialize stdlib
     stdio_init_all();
-    sleep_ms(3000);  // 等待串口初始化完成
-    printf("\n\n\n开始ST7789 LCD演示程序...\n");
+    sleep_ms(3000);  // Wait for serial to initialize
+    printf("\n\n\nStarting ST7789 LCD Demo Program...\n");
     
-    // 配置LCD
+    // Configure LCD
     st7789_config_t config = {
         .spi_inst = spi0,
         .spi_speed_hz = 40 * 1000 * 1000,  // 40MHz
@@ -113,29 +113,29 @@ int main() {
         
         .width = SCREEN_WIDTH,
         .height = SCREEN_HEIGHT,
-        .rotation = 0,  // 0度旋转
+        .rotation = 0,  // 0 degree rotation
     };
     
-    // 初始化LCD
+    // Initialize LCD
     if (!st7789_init(&config)) {
-        printf("错误: LCD初始化失败\n");
+        printf("Error: LCD initialization failed\n");
         return -1;
     }
     
-    // 开启背光
-    printf("打开背光...\n");
+    // Turn on backlight
+    printf("Turning on backlight...\n");
     st7789_set_backlight(true);
     sleep_ms(500);
     
-    // 运行静态图形演示
+    // Run static graphics demo
     demo_static_graphics();
     
-    // 运行动态彩色动画演示
+    // Run dynamic color animation demo
     demo_color_animation();
     
-    printf("演示完成。\n");
+    printf("Demo completed.\n");
     
-    // 保持屏幕显示最后一帧
+    // Keep displaying the last frame
     while (true) {
         sleep_ms(1000);
     }

@@ -1,6 +1,6 @@
 /**
  * @file st7789_hal.h
- * @brief ST7789 LCD硬件抽象层头文件
+ * @brief ST7789 LCD Hardware Abstraction Layer header file
  */
 
 #ifndef _ST7789_HAL_H_
@@ -14,60 +14,60 @@
 #include "st7789.h"
 
 /**
- * @brief 初始化硬件接口
+ * @brief Initialize hardware interface
  * 
- * @param config LCD配置参数
- * @return bool 初始化是否成功
+ * @param config LCD configuration parameters
+ * @return bool Whether initialization was successful
  */
 bool st7789_hal_init(const st7789_config_t *config);
 
 /**
- * @brief 发送命令到LCD
+ * @brief Send command to LCD
  * 
- * @param cmd 命令值
+ * @param cmd Command value
  */
 void st7789_hal_write_cmd(uint8_t cmd);
 
 /**
- * @brief 发送单字节数据到LCD
+ * @brief Send single byte data to LCD
  * 
- * @param data 数据值
+ * @param data Data value
  */
 void st7789_hal_write_data(uint8_t data);
 
 /**
- * @brief 发送多字节数据到LCD
+ * @brief Send multiple byte data to LCD
  * 
- * @param data 数据缓冲区指针
- * @param len 数据长度
+ * @param data Data buffer pointer
+ * @param len Data length
  */
 void st7789_hal_write_data_bulk(const uint8_t *data, size_t len);
 
 /**
- * @brief 控制LCD复位引脚
+ * @brief Control LCD reset pin
  * 
- * @param state 复位状态(true为高电平，false为低电平)
+ * @param state Reset state (true for high level, false for low level)
  */
 void st7789_hal_reset(bool state);
 
 /**
- * @brief 控制LCD背光引脚
+ * @brief Control LCD backlight pin
  * 
- * @param state 背光状态(true为开，false为关)
+ * @param state Backlight state (true for on, false for off)
  */
 void st7789_hal_set_backlight(bool state);
 
 /**
- * @brief 延时函数(毫秒)
+ * @brief Delay function (milliseconds)
  * 
- * @param ms 延时毫秒数
+ * @param ms Milliseconds to delay
  */
 void st7789_hal_delay_ms(uint32_t ms);
 
 /**
- * @brief 延时函数(微秒)
+ * @brief Delay function (microseconds)
  * 
- * @param us 延时微秒数
+ * @param us Microseconds to delay
  */
 void st7789_hal_delay_us(uint32_t us);
 

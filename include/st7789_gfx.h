@@ -1,6 +1,6 @@
 /**
  * @file st7789_gfx.h
- * @brief ST7789 LCD图形库头文件
+ * @brief ST7789 LCD Graphics Library header file
  */
 
 #ifndef _ST7789_GFX_H_
@@ -11,104 +11,104 @@
 #include "st7789.h"
 
 /**
- * @brief 颜色转换宏(R,G,B转RGB565)
+ * @brief Color conversion macro (R,G,B to RGB565)
  */
 #define ST7789_COLOR_RGB(r, g, b) ((((r) & 0xF8) << 8) | (((g) & 0xFC) << 3) | (((b) & 0xF8) >> 3))
 
 /**
- * @brief 绘制水平线
+ * @brief Draw horizontal line
  * 
- * @param x 起始X坐标
- * @param y Y坐标
- * @param w 宽度
- * @param color 颜色
+ * @param x Starting X coordinate
+ * @param y Y coordinate
+ * @param w Width
+ * @param color Color
  */
 void st7789_draw_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t color);
 
 /**
- * @brief 绘制垂直线
+ * @brief Draw vertical line
  * 
- * @param x X坐标
- * @param y 起始Y坐标
- * @param h 高度
- * @param color 颜色
+ * @param x X coordinate
+ * @param y Starting Y coordinate
+ * @param h Height
+ * @param color Color
  */
 void st7789_draw_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t color);
 
 /**
- * @brief 绘制线段
+ * @brief Draw line
  * 
- * @param x0 起始X坐标
- * @param y0 起始Y坐标
- * @param x1 结束X坐标
- * @param y1 结束Y坐标
- * @param color 颜色
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
+ * @param color Color
  */
 void st7789_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
 
 /**
- * @brief 绘制矩形
+ * @brief Draw rectangle
  * 
- * @param x 左上角X坐标
- * @param y 左上角Y坐标
- * @param w 宽度
- * @param h 高度
- * @param color 颜色
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param w Width
+ * @param h Height
+ * @param color Color
  */
 void st7789_draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
 
 /**
- * @brief 绘制填充矩形
+ * @brief Draw filled rectangle
  * 
- * @param x 左上角X坐标
- * @param y 左上角Y坐标
- * @param w 宽度
- * @param h 高度
- * @param color 颜色
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param w Width
+ * @param h Height
+ * @param color Color
  */
 void st7789_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
 
 /**
- * @brief 绘制圆形
+ * @brief Draw circle
  * 
- * @param x0 圆心X坐标
- * @param y0 圆心Y坐标
- * @param r 半径
- * @param color 颜色
+ * @param x0 Center X coordinate
+ * @param y0 Center Y coordinate
+ * @param r Radius
+ * @param color Color
  */
 void st7789_draw_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
 
 /**
- * @brief 绘制填充圆形
+ * @brief Draw filled circle
  * 
- * @param x0 圆心X坐标
- * @param y0 圆心Y坐标
- * @param r 半径
- * @param color 颜色
+ * @param x0 Center X coordinate
+ * @param y0 Center Y coordinate
+ * @param r Radius
+ * @param color Color
  */
 void st7789_fill_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
 
 /**
- * @brief 绘制单个字符
+ * @brief Draw single character
  * 
- * @param x 左上角X坐标
- * @param y 左上角Y坐标
- * @param c 字符
- * @param color 字符颜色
- * @param bg 背景颜色
- * @param size 字体大小(1=8x8, 2=16x16, 等)
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param c Character
+ * @param color Character color
+ * @param bg Background color
+ * @param size Font size (1=8x8, 2=16x16, etc.)
  */
 void st7789_draw_char(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg, uint8_t size);
 
 /**
- * @brief 绘制字符串
+ * @brief Draw string
  * 
- * @param x 左上角X坐标
- * @param y 左上角Y坐标
- * @param str 字符串指针
- * @param color 字符颜色
- * @param bg 背景颜色
- * @param size 字体大小
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param str String pointer
+ * @param color Character color
+ * @param bg Background color
+ * @param size Font size
  */
 void st7789_draw_string(uint16_t x, uint16_t y, const char *str, uint16_t color, uint16_t bg, uint8_t size);
 

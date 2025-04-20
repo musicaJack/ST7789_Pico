@@ -1,6 +1,6 @@
 /**
  * @file st7789.h
- * @brief ST7789 LCD驱动头文件
+ * @brief ST7789 LCD driver header file
  */
 
 #ifndef _ST7789_H_
@@ -13,30 +13,30 @@
 #include "hardware/spi.h"
 
 /**
- * @brief LCD配置结构体
+ * @brief LCD configuration structure
  */
 typedef struct {
-    spi_inst_t *spi_inst;    // SPI实例
-    uint32_t spi_speed_hz;   // SPI速度（Hz）
+    spi_inst_t *spi_inst;    // SPI instance
+    uint32_t spi_speed_hz;   // SPI speed (Hz)
     
-    // 引脚定义
+    // Pin definitions
     uint8_t pin_din;         // MOSI
     uint8_t pin_sck;         // SCK
     uint8_t pin_cs;          // CS
-    uint8_t pin_dc;          // 数据/命令
-    uint8_t pin_reset;       // 复位
-    uint8_t pin_bl;          // 背光
+    uint8_t pin_dc;          // Data/Command
+    uint8_t pin_reset;       // Reset
+    uint8_t pin_bl;          // Backlight
     
-    // 屏幕参数
-    uint16_t width;          // 宽度
-    uint16_t height;         // 高度
+    // Screen parameters
+    uint16_t width;          // Width
+    uint16_t height;         // Height
     
-    // 方向相关
-    uint8_t rotation;        // 旋转方向
+    // Orientation
+    uint8_t rotation;        // Rotation
 } st7789_config_t;
 
 /**
- * @brief 颜色定义 (RGB565格式)
+ * @brief Color definitions (RGB565 format)
  */
 #define ST7789_BLACK       0x0000
 #define ST7789_WHITE       0xFFFF
@@ -48,58 +48,58 @@ typedef struct {
 #define ST7789_MAGENTA     0xF81F
 
 /**
- * @brief 初始化ST7789驱动
+ * @brief Initialize ST7789 driver
  * 
- * @param config LCD配置参数
- * @return bool 初始化是否成功
+ * @param config LCD configuration parameters
+ * @return bool Whether initialization was successful
  */
 bool st7789_init(const st7789_config_t *config);
 
 /**
- * @brief 设置LCD背光
+ * @brief Set LCD backlight
  * 
- * @param on 背光状态(true为开,false为关)
+ * @param on Backlight state (true for on, false for off)
  */
 void st7789_set_backlight(bool on);
 
 /**
- * @brief 填充整个屏幕为指定颜色
+ * @brief Fill entire screen with specified color
  * 
- * @param color 填充颜色(RGB565格式)
+ * @param color Fill color (RGB565 format)
  */
 void st7789_fill_screen(uint16_t color);
 
 /**
- * @brief 设置绘图区域
+ * @brief Set drawing window
  * 
- * @param x0 起始X坐标
- * @param y0 起始Y坐标
- * @param x1 结束X坐标
- * @param y1 结束Y坐标
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
  */
 void st7789_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 
 /**
- * @brief 绘制单个像素
+ * @brief Draw a single pixel
  * 
- * @param x X坐标
- * @param y Y坐标
- * @param color 像素颜色
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @param color Pixel color
  */
 void st7789_draw_pixel(uint16_t x, uint16_t y, uint16_t color);
 
 /**
- * @brief 发送块数据到LCD
+ * @brief Send block data to LCD
  * 
- * @param data 数据指针
- * @param len 数据长度
+ * @param data Data pointer
+ * @param len Data length
  */
 void st7789_write_data_buffer(const uint8_t *data, size_t len);
 
 /**
- * @brief 设置显示方向
+ * @brief Set display orientation
  * 
- * @param rotation 旋转值(0-3)
+ * @param rotation Rotation value (0-3)
  */
 void st7789_set_rotation(uint8_t rotation);
 
