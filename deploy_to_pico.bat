@@ -17,7 +17,7 @@ if %FOUND% EQU 0 (
 
 echo Pico device found: %PICO_DRIVE%
 echo Deploying UF2 file...
-copy /Y "build\pico_spi_lcd.uf2" %PICO_DRIVE%\
+copy /Y "build\lcd_demo.uf2" %PICO_DRIVE%\
 if %ERRORLEVEL% NEQ 0 (
   echo Copy failed!
   pause

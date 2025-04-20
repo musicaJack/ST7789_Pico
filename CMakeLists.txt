@@ -44,12 +44,32 @@ endif()
 include(pico_sdk_import.cmake)
 
 # 初始化项目（必须在pico_sdk_init前）
-project(pico_spi_lcd C CXX ASM)
+project(st7789_pico C CXX ASM)
 
 # 初始化Pico SDK
 pico_sdk_init()
 
-# 添加可执行文件
+# 添加ST7789库
+add_library(st7789_lib
+    src/st7789.c
+    src/st7789_hal.c
+    src/st7789_gfx.c
+    src/st7789_font.c
+)
+
+# 设置ST7789库包含路径
+target_include_directories(st7789_lib PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
+
+# 设置ST7789库链接库
+target_link_libraries(st7789_lib
+    pico_stdlib
+    hardware_spi
+    hardware_gpio
+)
+
+# 添加可执行文件 - 保留旧的main程序
 add_executable(pico_spi_lcd
     pico_spi_lcd.c
 )
@@ -57,8 +77,7 @@ add_executable(pico_spi_lcd
 # 定义包含目录
 target_include_directories(pico_spi_lcd PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/images
-    ${CMAKE_CURRENT_LIST_DIR}/lib
+    ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
 # 添加需要的库
@@ -74,3 +93,28 @@ pico_enable_stdio_uart(pico_spi_lcd 0)
 
 # 创建额外输出格式文件（bin/hex/uf2）
 pico_add_extra_outputs(pico_spi_lcd)
+
+# 添加示例程序
+add_executable(lcd_demo
+    examples/lcd_demo.c
+)
+
+# 示例程序包含目录
+target_include_directories(lcd_demo PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
+
+# 链接示例程序需要的库
+target_link_libraries(lcd_demo
+    st7789_lib
+    pico_stdlib
+    hardware_spi
+    hardware_gpio
+)
+
+# 配置示例程序的标准输入/输出
+pico_enable_stdio_usb(lcd_demo 1)
+pico_enable_stdio_uart(lcd_demo 0)
+
+# 创建示例程序的额外输出格式文件
+pico_add_extra_outputs(lcd_demo)
