@@ -186,26 +186,73 @@ void st7789_set_rotation(uint8_t rotation) {
     if (!st7789_config.is_initialized) return;
     
     uint8_t madctl = 0;
+    uint16_t old_width, old_height;
     
+    // 保存原始尺寸
+    old_width = st7789_config.width;
+    old_height = st7789_config.height;
+    
+    // 获取非旋转状态下的宽高
+    uint16_t native_width, native_height;
+    if (st7789_config.rotation == 0 || st7789_config.rotation == 2) {
+        // 当前是0度或180度
+        native_width = old_width;
+        native_height = old_height;
+    } else {
+        // 当前是90度或270度
+        native_width = old_height;
+        native_height = old_width;
+    }
+    
+    // 根据新的旋转角度设置MADCTL和尺寸
     switch (rotation & 0x03) {
         case 0:  // 0 degree rotation
             madctl = 0x00;
+            st7789_config.width = native_width;
+            st7789_config.height = native_height;
             break;
         case 1:  // 90 degree rotation
             madctl = 0x60;
+            st7789_config.width = native_height;
+            st7789_config.height = native_width;
             break;
         case 2:  // 180 degree rotation
             madctl = 0xC0;
+            st7789_config.width = native_width;
+            st7789_config.height = native_height;
             break;
         case 3:  // 270 degree rotation
             madctl = 0xA0;
+            st7789_config.width = native_height;
+            st7789_config.height = native_width;
             break;
     }
     
+    // 设置MADCTL寄存器
     st7789_hal_write_cmd(0x36);
     st7789_hal_write_data(madctl);
     
+    // 更新当前旋转状态
     st7789_config.rotation = rotation & 0x03;
+    
+    // 如果尺寸有变化，重新设置屏幕窗口
+    if (old_width != st7789_config.width || old_height != st7789_config.height) {
+        printf("Display dimensions after rotation: %d x %d\n", 
+               st7789_config.width, st7789_config.height);
+        
+        // 设置新的地址窗口范围
+        st7789_hal_write_cmd(0x2A);    // Column Address Set
+        st7789_hal_write_data(0x00);
+        st7789_hal_write_data(0x00);
+        st7789_hal_write_data((st7789_config.width >> 8) & 0xFF);
+        st7789_hal_write_data(st7789_config.width & 0xFF);
+        
+        st7789_hal_write_cmd(0x2B);    // Row Address Set
+        st7789_hal_write_data(0x00);
+        st7789_hal_write_data(0x00);
+        st7789_hal_write_data((st7789_config.height >> 8) & 0xFF);
+        st7789_hal_write_data(st7789_config.height & 0xFF);
+    }
 }
 
 /**

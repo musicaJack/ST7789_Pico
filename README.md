@@ -49,6 +49,8 @@ ST7789_Pico/
 | CS         | GPIO17           |
 | BLK        | GPIO10           |
 
+> **Note**: This project uses a custom-designed development board as the base. The connections listed above are specifically optimized for this custom hardware platform to ensure optimal performance and integration.
+
 ## Building the Project
 
 ### Prerequisites
@@ -165,3 +167,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details. 
+
+## Contact
+
+For technical support or questions:
+- Email: yinyue@beingdigital.cn
+- Technical Discussion: Please use the project Wiki or forums
+- For other inquiries: Feel free to reach out using the contact information above 

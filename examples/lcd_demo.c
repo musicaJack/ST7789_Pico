@@ -7,6 +7,7 @@
 #include "pico/stdlib.h"
 #include "st7789.h"
 #include "st7789_gfx.h"
+#include "imgs/mount.h"  // 包含图像数据
 
 // Pin definitions
 #define PIN_DIN   19  // SPI MOSI
@@ -49,7 +50,57 @@ static void demo_static_graphics(void) {
     st7789_draw_string(40, 150, "ST7789 LCD Test", ST7789_CYAN, ST7789_BLACK, 2);
     st7789_draw_string(40, 180, "Raspberry Pi Pico", ST7789_MAGENTA, ST7789_BLACK, 2);
     
-    sleep_ms(2000);
+    sleep_ms(5000);
+}
+
+// Demo for image display
+static void demo_image_display(void) {
+    printf("Running image display demo...\n");
+    
+    // Clear screen to black
+    st7789_fill_screen(ST7789_BLACK);
+    sleep_ms(500);
+    
+    printf("Displaying image...\n");
+    
+    // 设置显示窗口为整个屏幕
+    st7789_set_window(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
+    
+    // 直接访问图像数据
+    const uint16_t* img_ptr = image_data;
+    uint8_t buffer[2];
+    
+    // 从mount.h获取图像原始尺寸
+    #define IMAGE_WIDTH 240
+    #define IMAGE_HEIGHT 320
+    
+    // 发送图像数据到LCD
+    printf("Sending image data to LCD...\n");
+    
+    // 对于90度旋转，需要调整遍历顺序
+    for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
+        for (uint16_t y = 0; y < SCREEN_HEIGHT; y++) {
+            // 对于90度旋转，新坐标(x,y)对应原图像的(y,IMAGE_WIDTH-1-x)
+            uint32_t orig_x = y;
+            uint32_t orig_y = IMAGE_WIDTH - 1 - x;
+            uint32_t index = orig_y * IMAGE_WIDTH + orig_x;
+            
+            // 获取色彩数据
+            uint16_t color = img_ptr[index];
+            
+            // 字节序转换
+            uint16_t color_fixed = ((color & 0xFF) << 8) | ((color & 0xFF00) >> 8);
+            
+            // 发送到LCD
+            buffer[0] = color_fixed >> 8;
+            buffer[1] = color_fixed & 0xFF;
+            
+            st7789_write_data_buffer(buffer, 2);
+        }
+    }
+    
+    printf("Image display completed.\n");
+    sleep_ms(8000);  // 显示8秒
 }
 
 // Demo for dynamic color animation
@@ -113,7 +164,7 @@ int main() {
         
         .width = SCREEN_WIDTH,
         .height = SCREEN_HEIGHT,
-        .rotation = 0,  // 0 degree rotation
+        .rotation = 0,  // 90 degree rotation
     };
     
     // Initialize LCD
@@ -126,13 +177,25 @@ int main() {
     printf("Turning on backlight...\n");
     st7789_set_backlight(true);
     sleep_ms(500);
+
+    // Rotate the screen 180 degrees
+    printf("Rotating screen 180 degrees...\n");
+    st7789_set_rotation(2);
     
     // Run static graphics demo
+    printf("Running static graphics demo...\n");
     demo_static_graphics();
     
+    // Run image display demo
+    printf("Running image display demo...\n");
+    demo_image_display();
+    
     // Run dynamic color animation demo
+    printf("Running dynamic color animation demo...\n");
     demo_color_animation();
     
+    st7789_fill_screen(ST7789_BLACK);
+    st7789_draw_string(40, 150, "Demo completed.", ST7789_WHITE, ST7789_BLACK, 2);
     printf("Demo completed.\n");
     
     // Keep displaying the last frame

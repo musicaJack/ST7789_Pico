@@ -118,3 +118,28 @@ pico_enable_stdio_uart(lcd_demo 0)
 
 # 创建示例程序的额外输出格式文件
 pico_add_extra_outputs(lcd_demo)
+
+# 添加GPS显示程序
+add_executable(gps_display
+    examples/gps_display.c
+)
+
+# GPS显示程序包含目录
+target_include_directories(gps_display PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
+
+# 链接GPS显示程序需要的库
+target_link_libraries(gps_display
+    st7789_lib
+    pico_stdlib
+    hardware_spi
+    hardware_gpio
+)
+
+# 配置GPS显示程序的标准输入/输出
+pico_enable_stdio_usb(gps_display 1)
+pico_enable_stdio_uart(gps_display 0)
+
+# 创建GPS显示程序的额外输出格式文件
+pico_add_extra_outputs(gps_display)
