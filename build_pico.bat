@@ -19,4 +19,4 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo  build success!
 echo UF2 file has been generated in the build directory
-pause 
+cd ..

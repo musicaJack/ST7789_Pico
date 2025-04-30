@@ -1,207 +1,328 @@
-/**
- * @file lcd_demo.c
- * @brief ST7789 LCD Driver Demo Program
- */
-
-#include <stdio.h>
 #include "pico/stdlib.h"
-#include "st7789.h"
-#include "st7789_gfx.h"
-#include "imgs/mount.h"  // 包含图像数据
+#include "hardware/spi.h"
+#include "hardware/gpio.h"
+#include <stdio.h>
 
-// Pin definitions
+// 引脚定义
 #define PIN_DIN   19  // SPI MOSI
 #define PIN_SCK   18  // SPI SCK
-#define PIN_CS    17  // SPI CS - manually controlled
+#define PIN_CS    17  // SPI CS - 需要手动控制
 #define PIN_DC    20  // Data/Command
 #define PIN_RESET 15  // Reset
 #define PIN_BL    10  // Backlight
 
-// Screen parameters
-#define SCREEN_WIDTH  240
+// 屏幕参数
+#define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 320
 
-// Demo for static graphics
-static void demo_static_graphics(void) {
-    printf("Running static graphics demo...\n");
+// SPI实例选择
+#define LCD_SPI spi0
+
+// 标志位
+static bool is_initialized = false;
+
+// 初始化SPI
+static void spi_init_pins(void) {
+    printf("Initializing SPI and GPIO...\n");
     
-    // Clear screen to black
-    st7789_fill_screen(ST7789_BLACK);
-    sleep_ms(500);
+    // 预先复位，确保干净的初始状态
+    gpio_init(PIN_RESET);
+    gpio_set_dir(PIN_RESET, GPIO_OUT);
+    gpio_put(PIN_RESET, 0);
+    sleep_ms(100);
+    gpio_put(PIN_RESET, 1);
+    sleep_ms(100);
     
-    // Draw some simple shapes
-    printf("Drawing rectangles...\n");
-    st7789_draw_rect(20, 20, 200, 120, ST7789_WHITE);
-    st7789_fill_rect(50, 50, 140, 60, ST7789_RED);
-    sleep_ms(1000);
+    // 初始化GPIO
+    gpio_init(PIN_DC);
+    gpio_init(PIN_BL);
+    gpio_init(PIN_CS);
     
-    printf("Drawing lines...\n");
-    st7789_draw_line(20, 160, 220, 220, ST7789_GREEN);
-    st7789_draw_line(220, 160, 20, 220, ST7789_GREEN);
-    sleep_ms(1000);
+    // 设置GPIO方向
+    gpio_set_dir(PIN_DC, GPIO_OUT);
+    gpio_set_dir(PIN_BL, GPIO_OUT);
+    gpio_set_dir(PIN_CS, GPIO_OUT);
     
-    printf("Drawing circles...\n");
-    st7789_draw_circle(120, 280, 30, ST7789_BLUE);
-    st7789_fill_circle(120, 280, 15, ST7789_YELLOW);
-    sleep_ms(1000);
+    // 初始状态 - 确保CS为高电平，表示未选中
+    gpio_put(PIN_CS, 1);
+    gpio_put(PIN_DC, 1);
+    gpio_put(PIN_BL, 0);  // 背光关闭
     
-    // Draw text
-    printf("Drawing text...\n");
-    st7789_draw_string(40, 150, "ST7789 LCD Test", ST7789_CYAN, ST7789_BLACK, 2);
-    st7789_draw_string(40, 180, "Raspberry Pi Pico", ST7789_MAGENTA, ST7789_BLACK, 2);
+    // 初始化SPI
+    printf("Configuring SPI...\n");
+    spi_init(LCD_SPI, 40 * 1000 * 1000); // 速度40MHz
     
-    sleep_ms(5000);
+    // 设置SPI格式 - 必须是Mode 0
+    spi_set_format(LCD_SPI, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    
+    // 设置SPI引脚功能 - 注意CS由软件控制
+    gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(PIN_DIN, GPIO_FUNC_SPI);
+    
+    printf("SPI and GPIO initialization complete\n");
 }
 
-// Demo for image display
-static void demo_image_display(void) {
-    printf("Running image display demo...\n");
-    
-    // Clear screen to black
-    st7789_fill_screen(ST7789_BLACK);
-    sleep_ms(500);
-    
-    printf("Displaying image...\n");
-    
-    // 设置显示窗口为整个屏幕
-    st7789_set_window(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
-    
-    // 直接访问图像数据
-    const uint16_t* img_ptr = image_data;
-    uint8_t buffer[2];
-    
-    // 从mount.h获取图像原始尺寸
-    #define IMAGE_WIDTH 240
-    #define IMAGE_HEIGHT 320
-    
-    // 发送图像数据到LCD
-    printf("Sending image data to LCD...\n");
-    
-    // 对于90度旋转，需要调整遍历顺序
-    for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
-        for (uint16_t y = 0; y < SCREEN_HEIGHT; y++) {
-            // 对于90度旋转，新坐标(x,y)对应原图像的(y,IMAGE_WIDTH-1-x)
-            uint32_t orig_x = y;
-            uint32_t orig_y = IMAGE_WIDTH - 1 - x;
-            uint32_t index = orig_y * IMAGE_WIDTH + orig_x;
-            
-            // 获取色彩数据
-            uint16_t color = img_ptr[index];
-            
-            // 字节序转换
-            uint16_t color_fixed = ((color & 0xFF) << 8) | ((color & 0xFF00) >> 8);
-            
-            // 发送到LCD
-            buffer[0] = color_fixed >> 8;
-            buffer[1] = color_fixed & 0xFF;
-            
-            st7789_write_data_buffer(buffer, 2);
-        }
-    }
-    
-    printf("Image display completed.\n");
-    sleep_ms(8000);  // 显示8秒
+// 发送命令
+static void lcd_write_cmd(uint8_t cmd) {
+    gpio_put(PIN_CS, 0);  // 选中芯片
+    gpio_put(PIN_DC, 0);  // 命令模式
+    spi_write_blocking(LCD_SPI, &cmd, 1);
+    gpio_put(PIN_CS, 1);  // 取消选中
+    sleep_us(10);         // 短暂延时
 }
 
-// Demo for dynamic color animation
-static void demo_color_animation(void) {
-    printf("Running color animation demo...\n");
+// 发送数据
+static void lcd_write_data(uint8_t data) {
+    gpio_put(PIN_CS, 0);  // 选中芯片
+    gpio_put(PIN_DC, 1);  // 数据模式
+    spi_write_blocking(LCD_SPI, &data, 1);
+    gpio_put(PIN_CS, 1);  // 取消选中
+}
+
+// 发送多个数据
+static void lcd_write_data_bulk(const uint8_t *data, size_t len) {
+    gpio_put(PIN_CS, 0);  // 选中芯片
+    gpio_put(PIN_DC, 1);  // 数据模式
+    spi_write_blocking(LCD_SPI, data, len);
+    gpio_put(PIN_CS, 1);  // 取消选中
+}
+
+// 通用初始化序列 - 适用于多种ST7789芯片
+static void lcd_init_sequence(void) {
+    printf("Running ST7789 initialization sequence...\n");
     
-    uint32_t t = 0;
-    uint32_t start_time = to_ms_since_boot(get_absolute_time());
-    uint32_t frames = 0;
+    // 复位后等待
+    sleep_ms(120);
     
-    // Run animation for 10 seconds
-    while (to_ms_since_boot(get_absolute_time()) - start_time < 10000) {
-        uint8_t r, g, b;
-        uint16_t color;
-        
-        // Set drawing window to entire screen
-        st7789_set_window(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
-        
-        // Draw dynamic color pattern
-        for (uint16_t y = 0; y < SCREEN_HEIGHT; y++) {
-            for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
-                r = (x + t) & 0x1F;
-                g = (y - t) & 0x3F;
-                b = (x + y + (t >> 1)) & 0x1F;
-                
-                color = ((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F);
-                uint8_t data[2] = {color >> 8, color & 0xFF};
-                st7789_write_data_buffer(data, 2);
-            }
-        }
-        
-        t++;
-        frames++;
-        
-        if (frames % 10 == 0) {
-            printf("Completed %lu frames\n", frames);
-        }
+    // 基本初始化
+    lcd_write_cmd(0x01);    // 软件复位
+    sleep_ms(120);          // 复位后必须等待
+    
+    lcd_write_cmd(0x11);    // 退出睡眠模式
+    sleep_ms(120);          // 等待退出睡眠
+    
+    // Memory Data Access Control
+    lcd_write_cmd(0x36);    // MADCTL
+    lcd_write_data(0x00);   // 设置为正常方向 (可能需要调整)
+    
+    // Interface Pixel Format
+    lcd_write_cmd(0x3A);
+    lcd_write_data(0x55);   // 65K of RGB interface (16bit/pixel)
+    
+    // 显示反转控制
+    lcd_write_cmd(0x21);    // 开启显示反转
+    
+    // 设置行列地址范围
+    lcd_write_cmd(0x2A);    // 列地址设置
+    lcd_write_data(0x00);
+    lcd_write_data(0x00);
+    lcd_write_data((SCREEN_WIDTH >> 8) & 0xFF);
+    lcd_write_data(SCREEN_WIDTH & 0xFF);
+    
+    lcd_write_cmd(0x2B);    // 行地址设置
+    lcd_write_data(0x00);
+    lcd_write_data(0x00);
+    lcd_write_data((SCREEN_HEIGHT >> 8) & 0xFF);
+    lcd_write_data(SCREEN_HEIGHT & 0xFF);
+    
+    // 附加设置 - 根据不同型号可能需要调整
+    lcd_write_cmd(0xB2);    // Porch Setting
+    lcd_write_data(0x0C);
+    lcd_write_data(0x0C);
+    lcd_write_data(0x00);
+    lcd_write_data(0x33);
+    lcd_write_data(0x33);
+    
+    lcd_write_cmd(0xB7);    // Gate Control
+    lcd_write_data(0x35);
+    
+    lcd_write_cmd(0xBB);    // VCOM Setting
+    lcd_write_data(0x20);   // 0.9V
+    
+    lcd_write_cmd(0xC0);    // LCM Control
+    lcd_write_data(0x2C);
+    
+    lcd_write_cmd(0xC2);    // VDV and VRH Command Enable
+    lcd_write_data(0x01);
+    
+    lcd_write_cmd(0xC3);    // VRH Set
+    lcd_write_data(0x12);
+    
+    lcd_write_cmd(0xC4);    // VDV Set
+    lcd_write_data(0x20);
+    
+    lcd_write_cmd(0xC6);    // Frame Rate Control in Normal Mode
+    lcd_write_data(0x0F);   // 60Hz
+    
+    lcd_write_cmd(0xD0);    // Power Control 1
+    lcd_write_data(0xA4);
+    lcd_write_data(0xA1);
+    
+    lcd_write_cmd(0xE0);    // Positive Voltage Gamma Control
+    lcd_write_data(0xD0);
+    lcd_write_data(0x08);
+    lcd_write_data(0x11);
+    lcd_write_data(0x08);
+    lcd_write_data(0x0C);
+    lcd_write_data(0x15);
+    lcd_write_data(0x39);
+    lcd_write_data(0x33);
+    lcd_write_data(0x50);
+    lcd_write_data(0x36);
+    lcd_write_data(0x13);
+    lcd_write_data(0x14);
+    lcd_write_data(0x29);
+    lcd_write_data(0x2D);
+    
+    lcd_write_cmd(0xE1);    // Negative Voltage Gamma Control
+    lcd_write_data(0xD0);
+    lcd_write_data(0x08);
+    lcd_write_data(0x10);
+    lcd_write_data(0x08);
+    lcd_write_data(0x06);
+    lcd_write_data(0x06);
+    lcd_write_data(0x39);
+    lcd_write_data(0x44);
+    lcd_write_data(0x51);
+    lcd_write_data(0x0B);
+    lcd_write_data(0x16);
+    lcd_write_data(0x14);
+    lcd_write_data(0x2F);
+    lcd_write_data(0x31);
+    
+    sleep_ms(10);
+    
+    // 打开显示
+    lcd_write_cmd(0x29);    // 开启显示
+    sleep_ms(10);
+    
+    printf("ST7789 initialization sequence completed\n");
+}
+
+// 初始化LCD
+static void lcd_init(void) {
+    printf("Starting LCD initialization...\n");
+    
+    // 硬件复位
+    printf("Performing hardware reset...\n");
+    gpio_put(PIN_RESET, 0);
+    sleep_ms(200);  // 保持低电平200ms
+    gpio_put(PIN_RESET, 1);
+    sleep_ms(200);  // 复位后等待
+    
+    // 运行初始化序列
+    lcd_init_sequence();
+    
+    is_initialized = true;
+    printf("LCD initialization complete\n");
+}
+
+// 测试填充屏幕为单色
+static void lcd_fill_color(uint16_t color) {
+    uint8_t hi = color >> 8;
+    uint8_t lo = color & 0xFF;
+    
+    // 设置绘图区域
+    lcd_write_cmd(0x2A);    // 列地址设置
+    lcd_write_data(0x00);
+    lcd_write_data(0x00);
+    lcd_write_data((SCREEN_WIDTH >> 8) & 0xFF);
+    lcd_write_data(SCREEN_WIDTH & 0xFF);
+    
+    lcd_write_cmd(0x2B);    // 行地址设置
+    lcd_write_data(0x00);
+    lcd_write_data(0x00);
+    lcd_write_data((SCREEN_HEIGHT >> 8) & 0xFF);
+    lcd_write_data(SCREEN_HEIGHT & 0xFF);
+    
+    // 开始写入RAM
+    lcd_write_cmd(0x2C);
+    
+    // 填充全屏
+    gpio_put(PIN_CS, 0);  // 选中芯片
+    gpio_put(PIN_DC, 1);  // 数据模式
+    
+    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
+        spi_write_blocking(LCD_SPI, &hi, 1);
+        spi_write_blocking(LCD_SPI, &lo, 1);
     }
     
-    float fps = (float)frames / 10.0f;
-    printf("Animation completed: %lu frames, average %.1f FPS\n", frames, fps);
+    gpio_put(PIN_CS, 1);  // 取消选中
 }
 
 int main() {
-    // Initialize stdlib
     stdio_init_all();
-    sleep_ms(3000);  // Wait for serial to initialize
-    printf("\n\n\nStarting ST7789 LCD Demo Program...\n");
+    sleep_ms(3000);  // 等待串口初始化完成
+    printf("\n\n\nStarting LCD test program...\n");
     
-    // Configure LCD
-    st7789_config_t config = {
-        .spi_inst = spi0,
-        .spi_speed_hz = 40 * 1000 * 1000,  // 40MHz
-        
-        .pin_din = PIN_DIN,
-        .pin_sck = PIN_SCK,
-        .pin_cs = PIN_CS,
-        .pin_dc = PIN_DC,
-        .pin_reset = PIN_RESET,
-        .pin_bl = PIN_BL,
-        
-        .width = SCREEN_WIDTH,
-        .height = SCREEN_HEIGHT,
-        .rotation = 0,  // 90 degree rotation
-    };
+    // 初始化SPI和GPIO
+    spi_init_pins();
     
-    // Initialize LCD
-    if (!st7789_init(&config)) {
-        printf("Error: LCD initialization failed\n");
-        return -1;
-    }
+    // 初始化LCD
+    lcd_init();
     
-    // Turn on backlight
+    // 开启背光
     printf("Turning on backlight...\n");
-    st7789_set_backlight(true);
+    gpio_put(PIN_BL, 1);  // 背光打开
     sleep_ms(500);
-
-    // Rotate the screen 180 degrees
-    printf("Rotating screen 180 degrees...\n");
-    st7789_set_rotation(2);
     
-    // Run static graphics demo
-    printf("Running static graphics demo...\n");
-    demo_static_graphics();
+    // 循环绘制不同颜色
+    printf("Starting display test...\n");
     
-    // Run image display demo
-    printf("Running image display demo...\n");
-    demo_image_display();
+    // 尝试先填充红色屏幕
+    printf("Filling screen with RED color\n");
+    lcd_fill_color(0xF800);  // 红色
+    sleep_ms(2000);
     
-    // Run dynamic color animation demo
-    printf("Running dynamic color animation demo...\n");
-    demo_color_animation();
+    // 填充绿色
+    printf("Filling screen with GREEN color\n");
+    lcd_fill_color(0x07E0);  // 绿色
+    sleep_ms(2000);
     
-    st7789_fill_screen(ST7789_BLACK);
-    st7789_draw_string(40, 150, "Demo completed.", ST7789_WHITE, ST7789_BLACK, 2);
-    printf("Demo completed.\n");
+    // 填充蓝色
+    printf("Filling screen with BLUE color\n");
+    lcd_fill_color(0x001F);  // 蓝色
+    sleep_ms(2000);
     
-    // Keep displaying the last frame
+    // 然后再进入彩色动画
+    uint32_t t = 0;
     while (true) {
-        sleep_ms(1000);
+        // 设置绘图区域
+        lcd_write_cmd(0x2A);    // 列地址设置
+        lcd_write_data(0x00);
+        lcd_write_data(0x00);
+        lcd_write_data((SCREEN_WIDTH >> 8) & 0xFF);
+        lcd_write_data(SCREEN_WIDTH & 0xFF);
+        
+        lcd_write_cmd(0x2B);    // 行地址设置
+        lcd_write_data(0x00);
+        lcd_write_data(0x00);
+        lcd_write_data((SCREEN_HEIGHT >> 8) & 0xFF);
+        lcd_write_data(SCREEN_HEIGHT & 0xFF);
+        
+        // 开始写入RAM
+        lcd_write_cmd(0x2C);
+        
+        // 绘制动态彩色图案
+        gpio_put(PIN_CS, 0);  // 选中芯片
+        gpio_put(PIN_DC, 1);  // 数据模式
+        
+        for (uint16_t y = 0; y < SCREEN_HEIGHT; y++) {
+            for (uint16_t x = 0; x < SCREEN_WIDTH; x++) {
+                uint8_t r = (x + t) & 0x1F;
+                uint8_t g = (y - t) & 0x3F;
+                uint8_t b = (x + y + (t >> 1)) & 0x1F;
+                
+                uint16_t color = ((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F);
+                uint8_t data[2] = {color >> 8, color & 0xFF};
+                spi_write_blocking(LCD_SPI, data, 2);
+            }
+        }
+        
+        gpio_put(PIN_CS, 1);  // 取消选中
+        
+        t++;
+        printf("Frame %d completed\n", t);
+        sleep_ms(100);  // 添加帧间延时
     }
-    
-    return 0;
 } 
