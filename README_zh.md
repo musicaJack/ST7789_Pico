@@ -23,17 +23,20 @@
 
 ```
 ST7789_Pico/
-├── include/             # 头文件
-│   ├── st7789.h         # 主驱动头文件
-│   ├── st7789_hal.h     # 硬件抽象层
-│   └── st7789_gfx.h     # 图形库
-├── src/                 # 源文件
-│   ├── st7789.c         # 核心驱动实现
-│   ├── st7789_hal.c     # 硬件实现
-│   ├── st7789_gfx.c     # 基本图形实现
-│   └── st7789_font.c    # 字体渲染
-└── examples/            # 示例程序
-    └── lcd_demo.c       # 演示程序
+├── build/                  # 保持不变
+├── demo/                   # 重命名自examples目录
+│   ├── lcd_demo.cpp        # 从.c改为.cpp
+│   └── gps_display_demo.cpp
+├── include/
+│   └── st7789.hpp          # 合并所有头文件为单一类接口
+├── src/
+│   └── st7789.cpp          # 合并所有实现为单一类实现
+├── CMakeLists.txt          # 更新为C++支持
+├── build_pico.bat          # 保持不变
+├── pico_sdk_import.cmake   # 保持不变
+├── README.md               # 更新为C++版本文档
+├── README_zh.md            # 更新为C++版本文档
+└── 其他文件...
 ```
 
 ## 硬件连接
