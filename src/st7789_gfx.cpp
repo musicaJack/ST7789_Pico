@@ -292,4 +292,11 @@ void Graphics::drawImage(int16_t x, int16_t y, int16_t w, int16_t h, const uint1
     _lcd->hal().writeDataBulk((const uint8_t*)data, w * h * 2);
 }
 
+void Graphics::clearScreen(uint16_t width, uint16_t height, uint16_t color) {
+    const int segment_height = 20;  // 每次清除的高度
+    for (int y = 0; y < height; y += segment_height) {
+        fillRect(0, y, width, segment_height, color);
+    }
+}
+
 } // namespace st7789 

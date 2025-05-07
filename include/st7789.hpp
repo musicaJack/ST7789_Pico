@@ -34,6 +34,9 @@ public:
     void fillScreen(uint16_t color);
     void sleepDisplay(bool sleep);
     
+    // 清屏功能
+    void clearScreen(uint16_t color = BLACK) { _gfx.clearScreen(_hal.getConfig().width, _hal.getConfig().height, color); }
+    
     // DMA相关功能
     bool isDmaEnabled() const { return _hal.isDmaEnabled(); }
     bool isDmaBusy() const { return _hal.isDmaBusy(); }

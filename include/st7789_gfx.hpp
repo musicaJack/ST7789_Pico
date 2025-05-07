@@ -33,6 +33,9 @@ public:
     // 图像绘制
     void drawImage(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t* data);
     
+    // 清屏功能
+    void clearScreen(uint16_t width, uint16_t height, uint16_t color = BLACK);
+    
     // 辅助函数
     static uint16_t color565(uint8_t r, uint8_t g, uint8_t b);
 };

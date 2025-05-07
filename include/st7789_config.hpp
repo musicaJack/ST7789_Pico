@@ -71,7 +71,7 @@ struct Config {
         pin_bl(10),
         width(240),
         height(320),
-        rotation(ROTATION_90),  // 默认设置为90度旋转
+        rotation(ROTATION_0),  // 默认设置为90度旋转
         dma() {}
 };
 
