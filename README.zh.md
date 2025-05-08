@@ -244,8 +244,8 @@ uint16_t customColor = 0x1234;  // 自定义 RGB565 颜色
 
 如有问题或建议，请通过以下方式联系：
 
-- 提交 Issue
-- 发送邮件至：your.email@example.com
+- 邮件联系
+- 发送邮件至：yinyue@beingdigital.cn
 
 ## 致谢
 

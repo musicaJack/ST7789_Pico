@@ -244,8 +244,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 For questions or suggestions, please contact:
 
-- Submit an Issue
-- Email: your.email@example.com
+- Email: yinyue@beingdigital.cn
 
 ## Acknowledgments
 
