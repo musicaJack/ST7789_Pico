@@ -1,126 +1,252 @@
-# ST7789 LCD Driver for Raspberry Pi Pico
+# ST7789 Pico Display Driver
 
-A C++ library for controlling ST7789 LCD displays with Raspberry Pi Pico. This library provides a comprehensive set of features for graphics and text rendering, with support for DMA transfers and screen rotation.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi%20Pico-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)
+
+English | [中文](README.zh.md)
+
+A high-performance display driver library for ST7789 TFT displays on Raspberry Pi Pico. This library provides comprehensive display control features including graphics rendering, text display, and basic display operations.
 
 ## Features
 
-- Full support for ST7789 LCD displays
+- Full ST7789 display driver support
 - Hardware abstraction layer for easy porting
-- Graphics library with basic shapes and text rendering
-- DMA support for efficient data transfer
-- Screen rotation support (0°, 90°, 180°, 270°)
-- Built-in font support
-- Configurable pin assignments
-- Backlight control
+- Built-in graphics drawing functions
+- Optimized SPI communication
+- User-friendly API interface
+- DMA support (Beta stage, may be unstable)
 
-## Hardware Requirements
+## Project Architecture
 
-- Raspberry Pi Pico
-- ST7789 LCD display (240x320 resolution)
-- SPI interface connections
+The project uses a modular design with the following components:
 
-## Pin Connections
+### Core Modules
 
-Default pin configuration:
-- MOSI: GPIO19
-- SCK: GPIO18
-- CS: GPIO17
-- DC: GPIO20
-- RESET: GPIO15
-- BL (Backlight): GPIO10
+- `st7789.hpp/cpp`: Core driver implementation, including display initialization and basic control functions
+- `st7789_hal.hpp/cpp`: Hardware abstraction layer, handling low-level hardware communication
+- `st7789_gfx.hpp/cpp`: Graphics functionality implementation, providing drawing and display features
+- `st7789_font.cpp`: Font support
+- `st7789_config.hpp`: Configuration file, containing pin definitions and display parameters
 
-## Installation
+### Directory Structure
 
-1. Clone this repository:
+```
+├── src/                    # Source code directory
+│   ├── st7789.cpp         # Core driver implementation
+│   ├── st7789_hal.cpp     # Hardware abstraction layer
+│   ├── st7789_gfx.cpp     # Graphics functionality
+│   └── st7789_font.cpp    # Font support
+├── include/               # Header files directory
+│   ├── st7789.hpp        # Core driver header
+│   ├── st7789_hal.hpp    # Hardware abstraction layer header
+│   ├── st7789_gfx.hpp    # Graphics functionality header
+│   └── st7789_config.hpp # Configuration file
+├── demo/                  # Example code
+├── build/                 # Build output directory
+└── CMakeLists.txt        # CMake build configuration
+```
+
+## Quick Start
+
+### Hardware Connection
+
+1. Connect the ST7789 display to Raspberry Pi Pico:
+   - SCK: GPIO18
+   - MOSI: GPIO19
+   - CS: GPIO17
+   - DC: GPIO20
+   - RST: GPIO15
+   - BLK: GPIO10
+   - VCC: 3.3V
+   - GND: GND
+
+Connection diagram:
+```
+Raspberry Pi Pico         ST7789 Display
++---------------+         +---------------+
+|               |         |               |
+|  GPIO18 (SCK) |-------->| SCK          |
+|  GPIO19 (MOSI)|-------->| MOSI         |
+|  GPIO17 (CS)  |-------->| CS           |
+|  GPIO20 (DC)  |-------->| DC           |
+|  GPIO15 (RST) |-------->| RST          |
+|  GPIO10 (BLK) |-------->| BLK          |
+|  3.3V         |-------->| VCC          |
+|  GND          |-------->| GND          |
+|               |         |               |
++---------------+         +---------------+
+```
+
+Notes:
+1. Ensure all connections are secure to avoid loose connections
+2. Check power connections carefully before powering on
+3. If display doesn't work, check:
+   - Power voltage is stable at 3.3V
+   - All signal connections are correct
+   - Backlight control line is properly connected
+
+### Software Setup
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/ST7789_Pico.git
+git clone https://github.com/musicaJack/ST7789_Pico.git
 cd ST7789_Pico
 ```
 
 2. Build the project:
 ```bash
-mkdir build
-cd build
-cmake ..
-make
+./build_pico.bat
 ```
 
-## Usage
+3. Upload to Pico:
+```bash
+./deploy_to_pico.bat
+```
 
-### Basic Example
+## API Usage Guide
+
+### Basic Configuration
 
 ```cpp
 #include "st7789.hpp"
 
-int main() {
-    // Create LCD object
-    st7789::ST7789 lcd;
-    
-    // Configure LCD
-    st7789::Config config;
-    config.spi_inst = spi0;
-    config.pin_din = 19;    // MOSI
-    config.pin_sck = 18;    // SCK
-    config.pin_cs = 17;     // CS
-    config.pin_dc = 20;     // DC
-    config.pin_reset = 15;  // RESET
-    config.pin_bl = 10;     // Backlight
-    config.width = 240;
-    config.height = 320;
-    
-    // Initialize LCD
-    if (!lcd.begin(config)) {
-        return -1;
-    }
-    
-    // Draw something
-    lcd.clearScreen();
-    lcd.drawString(10, 10, "Hello World!", st7789::WHITE, st7789::BLACK, 2);
+// Create display object
+st7789::ST7789 display;
+
+// Configure display parameters
+st7789::Config config;
+config.spi_inst = spi0;           // Use SPI0
+config.spi_speed_hz = 40000000;   // 40MHz SPI speed
+config.pin_din = 19;              // MOSI
+config.pin_sck = 18;              // SCK
+config.pin_cs = 17;               // CS
+config.pin_dc = 20;               // DC
+config.pin_reset = 15;            // RST
+config.pin_bl = 10;               // Backlight
+config.width = 240;               // Display width
+config.height = 320;              // Display height
+config.rotation = st7789::ROTATION_0;  // Display rotation
+
+// Initialize display
+if (!display.begin(config)) {
+    // Handle initialization failure
+    return -1;
 }
 ```
 
-### Available Demos
+### Basic Display Operations
 
-1. `lcd_demo.cpp`: Basic demonstration with screen rotation and test pattern
-2. `lcd_dma_demo.cpp`: Demonstration of DMA transfer capabilities
+```cpp
+// Clear screen
+display.clear();
 
-## API Reference
+// Set display rotation
+display.setRotation(st7789::ROTATION_90);  // Options: ROTATION_0, ROTATION_90, ROTATION_180, ROTATION_270
 
-### Basic Functions
+// Set backlight brightness (0-255)
+display.setBrightness(128);
+```
 
-- `begin()`: Initialize the display
-- `clearScreen()`: Clear the screen
-- `setRotation()`: Set screen rotation
-- `setBacklight()`: Control backlight
+### Graphics Drawing
 
-### Graphics Functions
+```cpp
+// Draw pixel
+display.drawPixel(10, 10, st7789::RED);
 
-- `drawPixel()`: Draw a single pixel
-- `drawLine()`: Draw a line
-- `drawRect()`: Draw a rectangle
-- `fillRect()`: Fill a rectangle
-- `drawCircle()`: Draw a circle
-- `fillCircle()`: Fill a circle
-- `drawTriangle()`: Draw a triangle
-- `drawString()`: Draw text
+// Draw line
+display.drawLine(0, 0, 100, 100, st7789::GREEN);
 
-### DMA Functions
+// Draw rectangle
+display.drawRect(50, 50, 100, 100, st7789::BLUE);
 
-- `drawImageDMA()`: Draw image using DMA
-- `fillRectDMA()`: Fill rectangle using DMA
-- `isDmaEnabled()`: Check if DMA is enabled
-- `isDmaBusy()`: Check if DMA transfer is in progress
+// Fill rectangle
+display.fillRect(50, 50, 100, 100, st7789::YELLOW);
+
+// Draw circle
+display.drawCircle(120, 160, 50, st7789::CYAN);
+
+// Fill circle
+display.fillCircle(120, 160, 50, st7789::MAGENTA);
+```
+
+### Text Display
+
+```cpp
+// Display text (default white, black background)
+display.drawString(10, 10, "Hello World!");
+
+// Display colored text
+display.drawString(10, 30, "Colored Text", st7789::RED);
+
+// Display text with background color
+display.drawString(10, 50, "Text with Background", st7789::WHITE, st7789::BLUE);
+```
+
+### DMA Features (Beta)
+
+```cpp
+// Enable DMA (enabled by default)
+config.dma.enabled = true;
+config.dma.buffer_size = 4096;  // 4KB DMA buffer
+
+// Fill rectangle using DMA
+display.fillRectDMA(0, 0, 240, 320, st7789::BLACK);
+
+// Check DMA status
+if (display.isDmaEnabled()) {
+    // DMA is enabled
+}
+
+if (display.isDmaBusy()) {
+    // DMA transfer in progress
+}
+```
+
+Notes:
+1. DMA features are currently in Beta stage and may be unstable
+2. Recommended for non-critical applications only
+3. If display issues occur, try disabling DMA:
+   ```cpp
+   config.dma.enabled = false;
+   ```
+
+## Color Definitions
+
+The library predefines the following colors (RGB565 format):
+- `st7789::BLACK` (0x0000)
+- `st7789::WHITE` (0xFFFF)
+- `st7789::RED` (0xF800)
+- `st7789::GREEN` (0x07E0)
+- `st7789::BLUE` (0x001F)
+- `st7789::YELLOW` (0xFFE0)
+- `st7789::CYAN` (0x07FF)
+- `st7789::MAGENTA` (0xF81F)
+
+Custom colors can also be used:
+```cpp
+uint16_t customColor = 0x1234;  // Custom RGB565 color
+```
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request. Before submitting code, please ensure:
+
+1. Code follows project coding standards
+2. Necessary comments and documentation are added
+3. All tests pass
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For questions or suggestions, please contact:
+
+- Submit an Issue
+- Email: your.email@example.com
 
 ## Acknowledgments
 
-- Raspberry Pi Pico SDK
-- ST7789 LCD datasheet
-- All contributors to this project 
+Thanks to all contributors to this project. 

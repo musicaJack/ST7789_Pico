@@ -3,7 +3,7 @@
 
 namespace st7789 {
 
-// ST7789命令定义
+// ST7789 command definitions
 enum ST7789_CMD {
     ST7789_NOP     = 0x00,
     ST7789_SWRESET = 0x01,
@@ -33,14 +33,14 @@ enum ST7789_CMD {
     ST7789_NVGAMCTRL = 0xE1
 };
 
-// MADCTL参数位定义
-#define MADCTL_MY  0x80  // 行地址顺序
-#define MADCTL_MX  0x40  // 列地址顺序
-#define MADCTL_MV  0x20  // 行/列交换
-#define MADCTL_ML  0x10  // 垂直刷新顺序
-#define MADCTL_RGB 0x00  // RGB顺序
-#define MADCTL_BGR 0x08  // BGR顺序
-#define MADCTL_MH  0x04  // 水平刷新顺序
+// MADCTL parameter bit definitions
+#define MADCTL_MY  0x80  // Row address order
+#define MADCTL_MX  0x40  // Column address order
+#define MADCTL_MV  0x20  // Row/Column exchange
+#define MADCTL_ML  0x10  // Vertical refresh order
+#define MADCTL_RGB 0x00  // RGB order
+#define MADCTL_BGR 0x08  // BGR order
+#define MADCTL_MH  0x04  // Horizontal refresh order
 
 ST7789::ST7789() : _gfx(this), _initialized(false) {
 }
@@ -53,13 +53,13 @@ bool ST7789::begin(const Config& config) {
         return true;
     }
     
-    // 初始化硬件抽象层
+    // Initialize hardware abstraction layer
     if (!_hal.init(config)) {
-        printf("初始化硬件抽象层失败\n");
+        printf("Failed to initialize hardware abstraction layer\n");
         return false;
     }
     
-    // 初始化显示屏
+    // Initialize display
     initializeDisplay();
     
     _initialized = true;
@@ -82,36 +82,36 @@ bool ST7789::begin(spi_inst_t* spi, uint8_t cs_pin, uint8_t dc_pin,
 }
 
 void ST7789::initializeDisplay() {
-    // 硬件复位
+    // Hardware reset
     _hal.reset();
     
-    // 软件复位
+    // Software reset
     _hal.writeCommand(ST7789_SWRESET);
     _hal.delay(150);
     
-    // 退出睡眠模式
+    // Exit sleep mode
     _hal.writeCommand(ST7789_SLPOUT);
     _hal.delay(120);
     
-    // 设置16位色模式 (65K)
+    // Set 16-bit color mode (65K)
     _hal.writeCommand(ST7789_COLMOD);
     _hal.writeData(0x55);  // 16 bits/pixel
     
-    // 初始MADCTL设置为0x00 (参考bak中的st7789_init_sequence)
+    // Initial MADCTL setting to 0x00 (refer to st7789_init_sequence in bak)
     _hal.writeCommand(ST7789_MADCTL);
-    _hal.writeData(0x00);  // 设置为默认方向
+    _hal.writeData(0x00);  // Set to default orientation
     
-    // 设置显示方向
+    // Set display orientation
     setRotation(_hal.getConfig().rotation);
     
-    // 帧率控制
+    // Frame rate control
     _hal.writeCommand(ST7789_FRCTRL2);
     _hal.writeData(0x0F);  // 60Hz
     
-    // 显示反转
+    // Display inversion
     _hal.writeCommand(ST7789_INVON);
     
-    // 其他初始化设置
+    // Other initialization settings
     _hal.writeCommand(ST7789_PORCTRL);
     _hal.writeData(0x0C);
     _hal.writeData(0x0C);
@@ -138,25 +138,25 @@ void ST7789::initializeDisplay() {
     _hal.writeCommand(ST7789_VDVS);
     _hal.writeData(0x20);
     
-    // 打开显示
+    // Turn on display
     _hal.writeCommand(ST7789_NORON);
     _hal.delay(10);
     
     _hal.writeCommand(ST7789_DISPON);
     _hal.delay(120);
     
-    // 设置内存窗口为全屏
+    // Set memory window to full screen
     setAddrWindow(0, 0, _hal.getConfig().width - 1, _hal.getConfig().height - 1);
     
-    // 清屏为黑色
+    // Clear screen to black
     fillScreen(BLACK);
     
-    // 打开背光
+    // Turn on backlight
     setBacklight(true);
 }
 
 void ST7789::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
-    // 设置列地址范围
+    // Set column address range
     _hal.writeCommand(ST7789_CASET);
     uint8_t data[4];
     data[0] = (x0 >> 8) & 0xFF;
@@ -165,7 +165,7 @@ void ST7789::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
     data[3] = x1 & 0xFF;
     _hal.writeDataBulk(data, 4);
     
-    // 设置行地址范围
+    // Set row address range
     _hal.writeCommand(ST7789_RASET);
     data[0] = (y0 >> 8) & 0xFF;
     data[1] = y0 & 0xFF;
@@ -173,7 +173,7 @@ void ST7789::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
     data[3] = y1 & 0xFF;
     _hal.writeDataBulk(data, 4);
     
-    // 准备写入内存
+    // Prepare for memory write
     _hal.writeCommand(ST7789_RAMWR);
 }
 
@@ -184,19 +184,19 @@ void ST7789::setRotation(Rotation rotation) {
     uint16_t old_width = _hal.getConfig().width;
     uint16_t old_height = _hal.getConfig().height;
     
-    // 获取非旋转状态下的原始宽高
+    // Get original width and height in non-rotated state
     uint16_t native_width, native_height;
     if (_hal.getConfig().rotation == ROTATION_0 || _hal.getConfig().rotation == ROTATION_180) {
-        // 当前是0度或180度
+        // Currently at 0 or 180 degrees
         native_width = old_width;
         native_height = old_height;
     } else {
-        // 当前是90度或270度
+        // Currently at 90 or 270 degrees
         native_width = old_height;
         native_height = old_width;
     }
     
-    // 设置新的旋转角度对应的MADCTL值 - 使用bak目录中的值
+    // Set MADCTL value for new rotation angle - using values from bak directory
     switch (rotation) {
         case ROTATION_0:
             madctl = 0x00;  // 参考bak目录中的实现
@@ -224,9 +224,9 @@ void ST7789::setRotation(Rotation rotation) {
     _hal.writeData(madctl);
     _hal.setRotation(rotation);
     
-    // 如果尺寸有变化，重新设置屏幕窗口
+    // If size has changed, re-set screen window
     if (old_width != _hal.getConfig().width || old_height != _hal.getConfig().height) {
-        // 设置新的地址窗口范围为全屏
+        // Set new address window range to full screen
         setAddrWindow(0, 0, _hal.getConfig().width - 1, _hal.getConfig().height - 1);
     }
 }
@@ -258,7 +258,7 @@ void ST7789::setBrightness(uint8_t brightness) {
 
 void ST7789::reset() {
     _hal.reset();
-    // 重新初始化显示屏
+    // Re-initialize display
     initializeDisplay();
 }
 
@@ -267,7 +267,7 @@ bool ST7789::drawImageDMA(int16_t x, int16_t y, int16_t w, int16_t h, const uint
         return false;
     }
     
-    // 裁剪坐标
+    // Clip coordinates
     int16_t x1 = x + w - 1;
     int16_t y1 = y + h - 1;
     
@@ -291,10 +291,10 @@ bool ST7789::drawImageDMA(int16_t x, int16_t y, int16_t w, int16_t h, const uint
         return false;
     }
     
-    // 设置绘图窗口
+    // Set drawing window
     setAddrWindow(x, y, x1, y1);
     
-    // 使用DMA传输图像数据
+    // Use DMA to transfer image data
     return _hal.writeDataDma(data, w * h);
 }
 
@@ -304,7 +304,7 @@ bool ST7789::fillRectDMA(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t co
         return false;
     }
     
-    // 裁剪坐标
+    // Clip coordinates
     int16_t x1 = x + w - 1;
     int16_t y1 = y + h - 1;
     
@@ -328,21 +328,21 @@ bool ST7789::fillRectDMA(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t co
         return false;
     }
     
-    // 设置绘图窗口
+    // Set drawing window
     setAddrWindow(x, y, x1, y1);
     
-    // 准备填充数据
-    const size_t buffer_size = 256; // 使用一个较小的缓冲区
+    // Prepare fill data
+    const size_t buffer_size = 256; // Use a small buffer
     uint16_t fill_buffer[buffer_size];
     for (size_t i = 0; i < buffer_size; i++) {
         fill_buffer[i] = color;
     }
     
-    // 计算总像素数
+    // Calculate total pixels
     size_t total_pixels = w * h;
     size_t pixels_sent = 0;
     
-    // 分批次传输
+    // Send in batches
     while (pixels_sent < total_pixels) {
         size_t pixels_to_send = (total_pixels - pixels_sent > buffer_size) ? 
                                 buffer_size : (total_pixels - pixels_sent);

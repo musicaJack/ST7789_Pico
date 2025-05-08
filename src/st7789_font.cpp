@@ -1,6 +1,6 @@
 #include <cstdint>
 
-// 标准5x7字体数据 (ASCII码空格到~)
+// Standard 5x7 font data (ASCII space to ~)
 extern const unsigned char font[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, // Space   
     0x00, 0x00, 0x5F, 0x00, 0x00, // ! 

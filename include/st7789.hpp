@@ -6,14 +6,14 @@
 
 namespace st7789 {
 
-// 主LCD控制类
+// Main LCD control class
 class ST7789 {
 private:
-    HAL _hal;                   // 硬件抽象层
-    Graphics _gfx;              // 图形功能
-    bool _initialized;          // 初始化标志
+    HAL _hal;                   // Hardware abstraction layer
+    Graphics _gfx;              // Graphics functionality
+    bool _initialized;          // Initialization flag
     
-    // 内部函数
+    // Internal functions
     void initializeDisplay();
     void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
     
@@ -21,40 +21,40 @@ public:
     ST7789();
     virtual ~ST7789();
     
-    // 初始化显示屏
+    // Display initialization
     bool begin(const Config& config = Config());
     bool begin(spi_inst_t* spi, uint8_t cs_pin, uint8_t dc_pin, 
               uint8_t rst_pin, uint8_t bl_pin = 10,
               uint16_t width = 240, uint16_t height = 320);
     
-    // 显示控制
+    // Display control
     void setRotation(Rotation rotation);
-    Rotation getRotation() { return _hal.getConfig().rotation; }  // 获取当前旋转角度
+    Rotation getRotation() { return _hal.getConfig().rotation; }  // Get current rotation angle
     void invertDisplay(bool invert);
     void fillScreen(uint16_t color);
     void sleepDisplay(bool sleep);
     
-    // 清屏功能
+    // Screen clearing
     void clearScreen(uint16_t color = BLACK) { _gfx.clearScreen(_hal.getConfig().width, _hal.getConfig().height, color); }
     
-    // DMA相关功能
+    // DMA related functions
     bool isDmaEnabled() const { return _hal.isDmaEnabled(); }
     bool isDmaBusy() const { return _hal.isDmaBusy(); }
     
-    // 使用DMA的高效绘图函数
+    // Efficient drawing functions using DMA
     bool drawImageDMA(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t* data);
     bool fillRectDMA(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
     
-    // 硬件控制
+    // Hardware control
     void setBacklight(bool on);
     void setBrightness(uint8_t brightness);
     void reset();
     
-    // 访问其他组件
+    // Access to other components
     Graphics& graphics() { return _gfx; }
     HAL& hal() { return _hal; }
     
-    // 方便的绘图函数 (传递给图形类)
+    // Convenient drawing functions (passed to graphics class)
     void drawPixel(int16_t x, int16_t y, uint16_t color) { _gfx.drawPixel(x, y, color); }
     void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) { _gfx.drawLine(x0, y0, x1, y1, color); }
     void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) { _gfx.drawRect(x, y, w, h, color); }
@@ -66,10 +66,10 @@ public:
     void drawString(int16_t x, int16_t y, const char* str, uint16_t color, uint16_t bg, uint8_t size) { _gfx.drawString(x, y, str, color, bg, size); }
     void drawImage(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t* data) { _gfx.drawImage(x, y, w, h, data); }
     
-    // 静态辅助函数
+    // Static helper functions
     static uint16_t color565(uint8_t r, uint8_t g, uint8_t b) { return Graphics::color565(r, g, b); }
     
-    // 友元声明
+    // Friend declarations
     friend class Graphics;
 };
 

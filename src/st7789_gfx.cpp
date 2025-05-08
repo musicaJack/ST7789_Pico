@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 
-// 包含字体数据的前向声明
+// Forward declaration of font data
 extern const unsigned char font[];
 
 namespace st7789 {
@@ -14,17 +14,17 @@ Graphics::Graphics(ST7789* lcd) : _lcd(lcd) {
 Graphics::~Graphics() {
 }
 
-// 将RGB值转换为16位颜色
+// Convert RGB values to 16-bit color
 uint16_t Graphics::color565(uint8_t r, uint8_t g, uint8_t b) {
     return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 }
 
-// 绘制单个像素
+// Draw a single pixel
 void Graphics::drawPixel(int16_t x, int16_t y, uint16_t color) {
-    // 访问主LCD类来设置绘图窗口和发送数据
+    // Access main LCD class to set drawing window and send data
     _lcd->setAddrWindow(x, y, x, y);
     
-    // 将单个像素的数据转换为字节并发送
+    // Convert single pixel data to bytes and send
     uint8_t data[2];
     data[0] = color >> 8;
     data[1] = color & 0xFF;
@@ -32,9 +32,9 @@ void Graphics::drawPixel(int16_t x, int16_t y, uint16_t color) {
     _lcd->hal().writeDataBulk(data, 2);
 }
 
-// 绘制直线
+// Draw a line
 void Graphics::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
-    // 使用Bresenham算法绘制直线
+    // Use Bresenham's algorithm to draw line
     int16_t steep = abs(y1 - y0) > abs(x1 - x0);
     
     if (steep) {
@@ -67,43 +67,43 @@ void Graphics::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t
     }
 }
 
-// 绘制矩形框
+// Draw rectangle outline
 void Graphics::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
-    // 绘制四条边
-    drawLine(x, y, x + w - 1, y, color);         // 顶边
-    drawLine(x, y + h - 1, x + w - 1, y + h - 1, color); // 底边
-    drawLine(x, y, x, y + h - 1, color);         // 左边
-    drawLine(x + w - 1, y, x + w - 1, y + h - 1, color); // 右边
+    // Draw four edges
+    drawLine(x, y, x + w - 1, y, color);         // Top edge
+    drawLine(x, y + h - 1, x + w - 1, y + h - 1, color); // Bottom edge
+    drawLine(x, y, x, y + h - 1, color);         // Left edge
+    drawLine(x + w - 1, y, x + w - 1, y + h - 1, color); // Right edge
 }
 
-// 填充矩形
+// Fill rectangle
 void Graphics::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
-    // 边界检查
+    // Boundary check
     if (w <= 0 || h <= 0) {
         return;
     }
     
-    // 设置绘图窗口
+    // Set drawing window
     _lcd->setAddrWindow(x, y, x + w - 1, y + h - 1);
     
-    // 准备颜色数据
+    // Prepare color data
     uint8_t colorHi = color >> 8;
     uint8_t colorLo = color & 0xFF;
     
-    // 计算需要填充的像素总数
+    // Calculate total pixels to fill
     uint32_t total = w * h;
     
-    // 如果数据量很大，分批次发送
-    const uint32_t batch_size = 128; // 每批次发送的像素数
-    uint8_t buffer[batch_size * 2];  // 每个像素2字节
+    // If data amount is large, send in batches
+    const uint32_t batch_size = 128; // Pixels per batch
+    uint8_t buffer[batch_size * 2];  // 2 bytes per pixel
     
-    // 初始化缓冲区
+    // Initialize buffer
     for (uint32_t i = 0; i < batch_size; i++) {
         buffer[i * 2] = colorHi;
         buffer[i * 2 + 1] = colorLo;
     }
     
-    // 分批次发送数据
+    // Send data in batches
     uint32_t remaining = total;
     while (remaining > 0) {
         uint32_t current_batch = (remaining > batch_size) ? batch_size : remaining;
@@ -112,16 +112,16 @@ void Graphics::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t col
     }
 }
 
-// 绘制圆
+// Draw circle
 void Graphics::drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
-    // 使用Bresenham圆算法
+    // Use Bresenham's circle algorithm
     int16_t f = 1 - r;
     int16_t ddF_x = 1;
     int16_t ddF_y = -2 * r;
     int16_t x = 0;
     int16_t y = r;
     
-    // 绘制8个点
+    // Draw 8 points
     drawPixel(x0, y0 + r, color);
     drawPixel(x0, y0 - r, color);
     drawPixel(x0 + r, y0, color);
@@ -149,9 +149,9 @@ void Graphics::drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
     }
 }
 
-// 填充圆
+// Fill circle
 void Graphics::fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
-    // 绘制垂直线段来填充圆
+    // Draw vertical lines to fill circle
     drawLine(x0, y0 - r, x0, y0 + r, color);
     
     int16_t f = 1 - r;
@@ -178,27 +178,27 @@ void Graphics::fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
     }
 }
 
-// 绘制三角形
+// Draw triangle
 void Graphics::drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color) {
-    // 绘制三角形的三条边
+    // Draw three edges of triangle
     drawLine(x0, y0, x1, y1, color);
     drawLine(x1, y1, x2, y2, color);
     drawLine(x2, y2, x0, y0, color);
 }
 
-// 绘制字符
+// Draw character
 void Graphics::drawChar(int16_t x, int16_t y, char c, uint16_t color, uint16_t bg, uint8_t size) {
-    if ((x >= _lcd->hal().getConfig().width) ||   // 超出右边界
-        (y >= _lcd->hal().getConfig().height) ||  // 超出下边界
-        ((x + 6 * size - 1) < 0) || // 超出左边界
-        ((y + 8 * size - 1) < 0))   // 超出上边界
+    if ((x >= _lcd->hal().getConfig().width) ||   // Beyond right boundary
+        (y >= _lcd->hal().getConfig().height) ||  // Beyond bottom boundary
+        ((x + 6 * size - 1) < 0) || // Beyond left boundary
+        ((y + 8 * size - 1) < 0))   // Beyond top boundary
         return;
     
-    // 确保字符在可打印范围内
+    // Ensure character is in printable range
     if (c < ' ' || c > '~')
         c = '?';
     
-    // 字体数据从font中获取
+    // Font data obtained from font
     for (int8_t i = 0; i < 6; i++) {
         uint8_t line;
         if (i == 5) {
@@ -226,18 +226,18 @@ void Graphics::drawChar(int16_t x, int16_t y, char c, uint16_t color, uint16_t b
     }
 }
 
-// 绘制字符串
+// Draw string
 void Graphics::drawString(int16_t x, int16_t y, const char* str, uint16_t color, uint16_t bg, uint8_t size) {
     int16_t cursor_x = x;
     int16_t cursor_y = y;
     
     while (*str) {
-        // 处理换行
+        // Process line break
         if (*str == '\n') {
             cursor_x = x;
             cursor_y += 8 * size;
         } 
-        // 处理回车
+        // Process carriage return
         else if (*str == '\r') {
             cursor_x = x;
         } 
@@ -245,7 +245,7 @@ void Graphics::drawString(int16_t x, int16_t y, const char* str, uint16_t color,
             drawChar(cursor_x, cursor_y, *str, color, bg, size);
             cursor_x += 6 * size;
             
-            // 如果即将超出屏幕右边界，自动换行
+            // If about to exceed right boundary, auto line break
             if (cursor_x > (_lcd->hal().getConfig().width - 6 * size)) {
                 cursor_x = x;
                 cursor_y += 8 * size;
@@ -255,13 +255,13 @@ void Graphics::drawString(int16_t x, int16_t y, const char* str, uint16_t color,
     }
 }
 
-// 绘制图像
+// Draw image
 void Graphics::drawImage(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t* data) {
-    // 边界检查
+    // Boundary check
     if (x >= _lcd->hal().getConfig().width || y >= _lcd->hal().getConfig().height)
         return;
     
-    // 裁剪坐标
+    // Clip coordinates
     int16_t x1 = x + w - 1;
     int16_t y1 = y + h - 1;
     
@@ -285,15 +285,15 @@ void Graphics::drawImage(int16_t x, int16_t y, int16_t w, int16_t h, const uint1
         return;
     }
     
-    // 设置绘图窗口
+    // Set drawing window
     _lcd->setAddrWindow(x, y, x1, y1);
     
-    // 发送图像数据
+    // Send image data
     _lcd->hal().writeDataBulk((const uint8_t*)data, w * h * 2);
 }
 
 void Graphics::clearScreen(uint16_t width, uint16_t height, uint16_t color) {
-    const int segment_height = 20;  // 每次清除的高度
+    const int segment_height = 20;  // Height per clear
     for (int y = 0; y < height; y += segment_height) {
         fillRect(0, y, width, segment_height, color);
     }

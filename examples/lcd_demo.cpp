@@ -2,60 +2,60 @@
 #include "pico/stdlib.h"
 #include "st7789.hpp"
 
-// 绘制老式电视机测试图案
+// Draw old TV test pattern
 void drawTVTestPattern(st7789::ST7789& lcd, uint16_t width, uint16_t height) {
-    // 1. 绘制彩色条纹
-    const int stripe_height = height / 8;  // 将屏幕分成8个水平条纹
+    // 1. Draw color stripes
+    const int stripe_height = height / 8;  // Divide screen into 8 horizontal stripes
     uint16_t colors[] = {
-        st7789::WHITE,    // 白色
-        st7789::YELLOW,   // 黄色
-        st7789::CYAN,     // 青色
-        st7789::GREEN,    // 绿色
-        st7789::MAGENTA,  // 品红
-        st7789::RED,      // 红色
-        st7789::BLUE,     // 蓝色
-        st7789::BLACK     // 黑色
+        st7789::WHITE,    // White
+        st7789::YELLOW,   // Yellow
+        st7789::CYAN,     // Cyan
+        st7789::GREEN,    // Green
+        st7789::MAGENTA,  // Magenta
+        st7789::RED,      // Red
+        st7789::BLUE,     // Blue
+        st7789::BLACK     // Black
     };
     
-    // 绘制水平条纹
+    // Draw horizontal stripes
     for (int i = 0; i < 8; i++) {
         lcd.fillRect(0, i * stripe_height, width, stripe_height, colors[i]);
     }
     
-    // 2. 绘制中心十字线
+    // 2. Draw center crosshair
     int center_x = width / 2;
     int center_y = height / 2;
-    int line_length = width / 12;  // 十字线长度根据屏幕宽度自适应
+    int line_length = width / 12;  // Crosshair length adapts to screen width
     
-    // 水平线
+    // Horizontal line
     lcd.fillRect(center_x - line_length, center_y, line_length * 2, 2, st7789::WHITE);
-    // 垂直线
+    // Vertical line
     lcd.fillRect(center_x, center_y - line_length, 2, line_length * 2, st7789::WHITE);
     
-    // 3. 绘制边框
-    int border_width = width / 60;  // 边框宽度根据屏幕宽度自适应
-    // 外边框
+    // 3. Draw border
+    int border_width = width / 60;  // Border width adapts to screen width
+    // Outer border
     lcd.drawRect(border_width, border_width, 
                 width - border_width * 2, height - border_width * 2, 
                 st7789::WHITE);
     
-    // 4. 绘制四个角落的方块
-    int corner_size = width / 12;  // 角落方块大小根据屏幕宽度自适应
-    // 左上角
+    // 4. Draw corner squares
+    int corner_size = width / 12;  // Corner square size adapts to screen width
+    // Top-left corner
     lcd.fillRect(border_width * 2, border_width * 2, 
                 corner_size, corner_size, st7789::WHITE);
-    // 右上角
+    // Top-right corner
     lcd.fillRect(width - border_width * 2 - corner_size, border_width * 2, 
                 corner_size, corner_size, st7789::WHITE);
-    // 左下角
+    // Bottom-left corner
     lcd.fillRect(border_width * 2, height - border_width * 2 - corner_size, 
                 corner_size, corner_size, st7789::WHITE);
-    // 右下角
+    // Bottom-right corner
     lcd.fillRect(width - border_width * 2 - corner_size, 
                 height - border_width * 2 - corner_size, 
                 corner_size, corner_size, st7789::WHITE);
     
-    // 5. 在底部显示文字和旋转角度
+    // 5. Display text and rotation angle at bottom
     char text[32];
     snprintf(text, sizeof(text), "LCD TEST - ROT: %d", lcd.getRotation());
     lcd.drawString(width/2 - 60, height - 30, text, st7789::WHITE, st7789::BLACK, 2);
@@ -91,7 +91,7 @@ int main() {
     
     // Initial clear screen
     lcd.clearScreen();
-    sleep_ms(1000);
+    sleep_ms(200);
     
     // Main loop
     uint8_t current_rotation = st7789::ROTATION_0;
