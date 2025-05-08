@@ -1,13 +1,13 @@
 # ST7789 Pico 显示驱动库
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi%20Pico-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%20Pico-red.svg)](https://www.raspberrypi.com/products/raspberry-pi-pico/)
+[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/musicaJack/ST7789_Pico/releases)
 
 [English](README.md) | 中文
 
 这是一个用于树莓派 Pico 的高性能 ST7789 TFT 显示屏驱动库。该库提供了完整的显示控制功能，包括图形渲染、文本显示和基础显示操作。
-
+![ST7789 Pico 显示](imgs/st7789_pico.png)
 ## 特性
 
 - 完整的 ST7789 显示屏驱动支持

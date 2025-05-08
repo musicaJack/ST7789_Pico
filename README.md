@@ -1,13 +1,16 @@
 # ST7789 Pico Display Driver
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi%20Pico-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)
+
+
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%20Pico-red.svg)](https://www.raspberrypi.com/products/raspberry-pi-pico/)
+[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/musicaJack/ST7789_Pico/releases)
 
 English | [中文](README.zh.md)
 
 A high-performance display driver library for ST7789 TFT displays on Raspberry Pi Pico. This library provides comprehensive display control features including graphics rendering, text display, and basic display operations.
 
+![ST7789 Pico Display](imgs/st7789_pico.png)
 ## Features
 
 - Full ST7789 display driver support
