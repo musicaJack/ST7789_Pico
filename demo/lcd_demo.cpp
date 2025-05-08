@@ -63,12 +63,12 @@ void drawTVTestPattern(st7789::ST7789& lcd, uint16_t width, uint16_t height) {
 
 int main() {
     stdio_init_all();
-    printf("ST7789 LCD 演示程序\n");
+    printf("ST7789 LCD Demo Program\n");
     
-    // 创建LCD对象
+    // Create LCD object
     st7789::ST7789 lcd;
     
-    // 配置并初始化LCD
+    // Configure and initialize LCD
     st7789::Config config;
     config.spi_inst = spi0;
     config.pin_din = 19;    // MOSI
@@ -76,53 +76,53 @@ int main() {
     config.pin_cs = 17;     // CS
     config.pin_dc = 20;     // DC
     config.pin_reset = 15;  // RESET
-    config.pin_bl = 10;     // 背光
+    config.pin_bl = 10;     // Backlight
     config.width = 240;
     config.height = 320;
     config.rotation = st7789::ROTATION_0;
     
-    // 初始化LCD
+    // Initialize LCD
     if (!lcd.begin(config)) {
-        printf("LCD初始化失败！\n");
+        printf("LCD initialization failed!\n");
         return -1;
     }
     
-    printf("LCD初始化成功！\n");
+    printf("LCD initialization successful!\n");
     
-    // 初始清屏
+    // Initial clear screen
     lcd.clearScreen();
     sleep_ms(1000);
     
-    // 主循环
+    // Main loop
     uint8_t current_rotation = st7789::ROTATION_0;
     uint32_t last_rotation_change = to_ms_since_boot(get_absolute_time());
     
     while (true) {
-        // 检查是否需要更改旋转方向
+        // Check if rotation needs to be changed
         uint32_t current_time = to_ms_since_boot(get_absolute_time());
-        if (current_time - last_rotation_change > 5000) { // 每5秒
-            // 切换到下一个旋转方向
+        if (current_time - last_rotation_change > 5000) { // Every 5 seconds
+            // Switch to next rotation
             current_rotation = (current_rotation + 1) % 4;
-            printf("切换到旋转方向: %d\n", current_rotation);
+            printf("Switching to rotation: %d\n", current_rotation);
             
-            // 设置新的旋转方向
+            // Set new rotation
             lcd.setRotation((st7789::Rotation)current_rotation);
             
-            // 清屏
+            // Clear screen
             lcd.clearScreen();
             
-            // 获取当前旋转后的实际尺寸
+            // Get current dimensions after rotation
             uint16_t current_width = (current_rotation % 2 == 0) ? config.width : config.height;
             uint16_t current_height = (current_rotation % 2 == 0) ? config.height : config.width;
             
-            // 重新绘制测试图案
+            // Redraw test pattern
             drawTVTestPattern(lcd, current_width, current_height);
             
-            // 更新时间戳
+            // Update timestamp
             last_rotation_change = current_time;
         }
         
-        sleep_ms(100);  // 短暂延时，减少CPU使用
+        sleep_ms(100);  // Short delay to reduce CPU usage
     }
     
     return 0;
